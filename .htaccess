@@ -1,0 +1,22 @@
+# ============================================================
+# Webcraft POS - Konfigurasi Keamanan Apache (.htaccess)
+# ============================================================
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Blokir akses langsung ke folder sensitif
+    RewriteRule ^(app|config|database|storage|views|docs)/ - [F,L]
+
+    # Blokir akses ke file konfigurasi dan dotfile
+    RewriteRule ^(\.env|\.env\.example|composer\.json|composer\.lock) - [F,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
