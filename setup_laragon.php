@@ -66,3 +66,20 @@ if ($foundLaragon !== null) {
     echo "[INFO] Folder standar C:\\laragon\\www tidak ditemukan di lokasi default.\n";
 }
 
+// 3. Segarkan tanggal transaksi sampel agar selalu berada di rentang 7 hari terakhir hingga hari ini
+$appPdo = \App\Core\Database::getConnection();
+$rows = $appPdo->query("SELECT id FROM sales ORDER BY id ASC LIMIT 6")->fetchAll(PDO::FETCH_COLUMN);
+$offsets = [4, 3, 2, 1, 0, 0];
+foreach ($rows as $i => $id) {
+    if (!isset($offsets[$i])) {
+        break;
+    }
+    $daysAgo = $offsets[$i];
+    $dt = date('Y-m-d', strtotime("-{$daysAgo} days")) . sprintf(' %02d:15:00', 9 + $i);
+    $inv = 'INV-' . date('Ymd', strtotime("-{$daysAgo} days")) . sprintf('-000%d', $i + 1);
+    $stmtUpd = $appPdo->prepare("UPDATE sales SET transaction_date = ?, created_at = ?, invoice_no = ? WHERE id = ?");
+    $stmtUpd->execute([$dt, $dt, $inv, $id]);
+}
+echo "[OK] Tanggal sampel transaksi telah disegarkan ke minggu ini (" . date('d M Y') . ") pada driver: " . strtoupper(\App\Core\Database::getDriver()) . "\n";
+
+

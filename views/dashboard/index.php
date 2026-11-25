@@ -292,9 +292,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 scales: {
                     y: {
                         beginAtZero: true,
+                        suggestedMax: 100000,
                         ticks: {
+                            precision: 0,
                             callback: function (value) {
-                                return 'Rp ' + Number(value).toLocaleString('id-ID');
+                                return 'Rp ' + Math.round(Number(value)).toLocaleString('id-ID');
                             }
                         }
                     }

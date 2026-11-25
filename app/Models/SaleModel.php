@@ -343,6 +343,31 @@ class SaleModel
             $chartProfit[] = (float) ($res['prof'] ?? 0);
         }
 
+        // Jika 7 hari kalender terakhir belum ada transaksi sama sekali namun ada riwayat transaksi sebelumnya,
+        // tampilkan 7 tanggal transaksi terakhir agar grafik tetap informatif
+        if (array_sum($chartRevenue) <= 0) {
+            $stmtLastDays = $this->db->query("
+                SELECT DATE(transaction_date) AS dt,
+                       COALESCE(SUM(grand_total), 0) AS rev,
+                       COALESCE(SUM(gross_profit), 0) AS prof
+                FROM sales
+                GROUP BY DATE(transaction_date)
+                ORDER BY dt DESC
+                LIMIT 7
+            ");
+            $lastRows = array_reverse($stmtLastDays->fetchAll());
+            if (!empty($lastRows)) {
+                $chartLabels = [];
+                $chartRevenue = [];
+                $chartProfit = [];
+                foreach ($lastRows as $lr) {
+                    $chartLabels[] = tanggal_indo($lr['dt']);
+                    $chartRevenue[] = (float) $lr['rev'];
+                    $chartProfit[] = (float) $lr['prof'];
+                }
+            }
+        }
+
         // Distribusi Metode Pembayaran
         $stmtPay = $this->db->query("
             SELECT payment_method, COUNT(*) AS cnt, COALESCE(SUM(grand_total), 0) AS total
